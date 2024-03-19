@@ -196,24 +196,37 @@ def update_table():
     for kolom in stokProduk:
         kolom['Jumlah Akhir'] = kolom['Jumlah Awal'] + kolom['Pemasukan'] - kolom['Pengeluaran']
         kolom['Nilai Akhir Stok'] = kolom['Jumlah Akhir'] * kolom['Harga Satuan']
-def print_table():
-    headers = ['Kode Produk', 'Nama Produk', 'Jumlah\nAwal\n(Unit)', 'Pemasukan\n(Unit)', 'Pengeluaran\n(Unit)', 'Jumlah\nAkhir\n(Unit)', 'Harga\nSatuan\n(Rp)','Nilai Akhir\nStok (Rp)']
-    data = [[kolom['Kode Produk'], kolom['Nama Produk'], kolom['Jumlah Awal'], kolom['Pemasukan'], kolom['Pengeluaran'], kolom['Jumlah Akhir'], kolom['Harga Satuan'], kolom['Nilai Akhir Stok']] for kolom in stokProduk]
-    print(tabulate(data, headers=headers, tablefmt="fancy_grid"))
+def validasi_kode_produk(kode_produk):
+    if len(kode_produk) != 7:
+        return False
+    huruf, angka = kode_produk.split('-')
+    if len(huruf) != 3 or not huruf.isalpha() or not huruf.isupper():
+        return False
+    if len(angka) != 3 or not angka.isdigit():
+        return False
+    return True
 def menambahProduk():
-    namaProduk = input('Masukkan Nama Barang: ')
+    namaProduk = input('Masukkan Nama Barang: ').title()
     # Memastikan kode produk yang dimasukkan tidak ada dalam stokProduk
     while True:
-        kodeProduk = input('Masukkan Kode Barang: ')
-        if not any(kodeProduk == barang['Kode Produk'] for barang in stokProduk):
-            break
+        kodeProduk = input('Masukkan Kode Barang (format: ABC-123): ')
+        if validasi_kode_produk(kodeProduk):  # Memastikan format kode sesuai
+            if not any(kodeProduk == barang['Kode Produk'] for barang in stokProduk):
+                break
+            else:
+                print("Kode produk sudah ada, mohon masukkan kode yang berbeda.")
         else:
-            print("Kode produk sudah ada, mohon masukkan kode yang berbeda.")
+              print("Format kode produk tidak sesuai. Mohon masukkan sesuai dengan format yang benar (mis. ABC-123).") 
     # Menginput data
     stokAwal = int(masukanAngka('Masukkan Stok Awal Barang: '))
     pemasukan = int(masukanAngka('Masukkan Jumlah Pemasukan Barang: '))
     pengeluaran = int(masukanAngka('Masukkan Jumlah Pengeluaran Barang: '))
-    hargaProdukSatuan = int(masukanAngka('Masukkan Harga Satuan Barang: '))
+    while True:
+        hargaProdukSatuan = int(masukanAngka('Masukkan Harga Satuan Barang (dalam ribuan rupiah): '))
+        if hargaProdukSatuan >= 1000 and hargaProdukSatuan % 1000 == 0:  # Memastikan harga dalam kelipatan ribuan
+            break
+        else:
+            print("Harga satuan harus dalam kelipatan ribuan rupiah dan minimal 1000.")
     # Menambahkan data produk ke stokProduk dengan struktur yang sesuai
     stokProduk.append({
         'Kode Produk': kodeProduk,
@@ -223,7 +236,6 @@ def menambahProduk():
         'Pengeluaran': pengeluaran,
         'Harga Satuan': hargaProdukSatuan
     })
-    
     print('Produk baru telah ditambahkan!')
     update_table()  
 
